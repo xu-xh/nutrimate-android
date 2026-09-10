@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NutriMate</string>
+
+    <!-- Navigation tabs -->
+    <string name="tab_home">首页</string>
+    <string name="tab_log_meal">记录</string>
+    <string name="tab_recipe">吃什么</string>
+    <string name="tab_grocery">清单</string>
+
+    <!-- M1 placeholders -->
+    <string name="placeholder_home">NutriMate 首页</string>
+    <string name="placeholder_log_meal">记录一餐</string>
+    <string name="placeholder_recipe">今日吃什么</string>
+    <string name="placeholder_recipe_note">M3 里程碑接入 AI 菜谱推荐</string>
+    <string name="placeholder_grocery">购物清单</string>
+    <string name="placeholder_grocery_note">M3 里程碑接入菜谱→清单合并</string>
+    <string name="placeholder_m1_note">M1 骨架已构建：分层架构 / Room / AI Provider 抽象已就绪</string>
+</resources>

@@ -24,7 +24,8 @@ class GenerateRecipesUseCase @Inject constructor(
     private val recipeRepository: RecipeRepository,
     private val aiService: NutritionAiService,
     private val clock: DayClock,
-    private val generationCounter: RecipeGenerationCounter
+    private val generationCounter: RecipeGenerationCounter,
+    private val calculatePlan: CalculateNutritionPlanUseCase
 ) {
 
     companion object {
@@ -49,7 +50,7 @@ class GenerateRecipesUseCase @Inject constructor(
 
         val today = clock.todayEpochDay()
         val entries: List<FoodLogEntry> = foodLogRepository.getByDate(today)
-        val budget = CalculateNutritionPlanUseCase.execute(profile, today).caloriesBudget
+        val budget = calculatePlan.execute(profile, today).caloriesBudget
         val remaining = budget - entries.sumOf { it.calories }
         if (remaining < MIN_REMAINING_CALORIES) return Result.BudgetExhausted
 

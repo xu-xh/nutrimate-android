@@ -28,28 +28,29 @@ class GetTodaySummaryUseCase @Inject constructor(
             foodLogRepository.observeByDate(clock.todayEpochDay()),
             profileRepository.observeProfile()
         ) { entries, profile ->
-            buildDailySummary(entries, profile)
+            buildDailySummary(clock.todayEpochDay(), entries, profile)
         }
 
     /** Single-shot read for non-reactive screens (e.g. history). */
     suspend fun forDate(dateEpochDay: Long): DailySummary {
         val entries = foodLogRepository.getByDate(dateEpochDay)
         val profile = profileRepository.observeProfile().first()
-        return buildDailySummary(entries, profile)
+        return buildDailySummary(dateEpochDay, entries, profile)
     }
 
     private fun buildDailySummary(
+        dateEpochDay: Long,
         entries: List<FoodLogEntry>,
         profile: com.nutrimate.app.domain.model.UserProfile?
     ): DailySummary {
         val budget = profile?.let {
-            calculatePlan.execute(it, clock.todayEpochDay()).caloriesBudget
+            calculatePlan.execute(it, dateEpochDay).caloriesBudget
         } ?: 0
         val visible = entries.filterNot { it.deleted }
         val totalCalories = visible.sumOf { it.calories }
         val grouped = visible.groupBy { it.mealType }
         return DailySummary(
-            dateEpochDay = clock.todayEpochDay(),
+            dateEpochDay = dateEpochDay,
             eatenCalories = totalCalories,
             eatenProtein = visible.sumOf { it.protein },
             eatenCarbs = visible.sumOf { it.carbs },

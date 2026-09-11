@@ -4,16 +4,84 @@
 
     <!-- Navigation tabs -->
     <string name="tab_home">首页</string>
-    <string name="tab_log_meal">记录</string>
     <string name="tab_recipe">吃什么</string>
     <string name="tab_grocery">清单</string>
 
-    <!-- M1 placeholders -->
-    <string name="placeholder_home">NutriMate 首页</string>
-    <string name="placeholder_log_meal">记录一餐</string>
+    <!-- Onboarding -->
+    <string name="ob_title_1">关于你</string>
+    <string name="ob_title_2">你的目标</string>
+    <string name="ob_title_3">偏好与忌口</string>
+    <string name="ob_gender">性别</string>
+    <string name="ob_male">男</string>
+    <string name="ob_female">女</string>
+    <string name="ob_birthday">出生日期</string>
+    <string name="ob_height">身高 (cm)</string>
+    <string name="ob_weight">体重 (kg)</string>
+    <string name="ob_goal">目标</string>
+    <string name="ob_goal_lose">减脂</string>
+    <string name="ob_goal_maintain">维持</string>
+    <string name="ob_goal_gain">增肌</string>
+    <string name="ob_activity">活动水平</string>
+    <string name="ob_taste">口味偏好（可选）</string>
+    <string name="ob_allergen">忌口/过敏（可选）</string>
+    <string name="ob_skip">跳过并完成</string>
+    <string name="ob_next">下一步</string>
+    <string name="ob_back">上一步</string>
+    <string name="ob_finish">完成并开始</string>
+    <string name="ob_calculating">正在计算你的营养计划…</string>
+
+    <!-- Home -->
+    <string name="home_today">今日营养</string>
+    <string name="home_kcal">千卡</string>
+    <string name="home_remaining">剩余</string>
+    <string name="home_over">已超出</string>
+    <string name="home_protein">蛋白质</string>
+    <string name="home_carbs">碳水</string>
+    <string name="home_fat">脂肪</string>
+    <string name="home_gram">g</string>
+    <string name="home_breakfast">早餐</string>
+    <string name="home_lunch">午餐</string>
+    <string name="home_dinner">晚餐</string>
+    <string name="home_snack">加餐</string>
+    <string name="home_empty">还没有记录，点右下角记录一餐</string>
+    <string name="home_log_fab">记录一餐</string>
+    <string name="home_eat_what">今日吃什么 →</string>
+    <string name="home_today_btn">回到今天</string>
+    <string name="home_edit">编辑</string>
+    <string name="home_delete">删除</string>
+    <string name="home_confirm_delete">确认删除这条记录？</string>
+    <string name="home_cancel">取消</string>
+    <string name="home_ok">确定</string>
+    <string name="home_serving">份量</string>
+
+    <!-- Log meal -->
+    <string name="log_title">记录一餐</string>
+    <string name="log_choose">怎么记录？</string>
+    <string name="log_camera">拍照识别</string>
+    <string name="log_gallery">从相册选择</string>
+    <string name="log_manual">手动输入</string>
+    <string name="log_analyzing">AI 识别中…</string>
+    <string name="log_preview">确认识别结果</string>
+    <string name="log_food_name">食物名称</string>
+    <string name="log_kcal_hint">热量 (千卡)</string>
+    <string name="log_protein_hint">蛋白质 (g)</string>
+    <string name="log_carbs_hint">碳水 (g)</string>
+    <string name="log_fat_hint">脂肪 (g)</string>
+    <string name="log_meal">餐次</string>
+    <string name="log_save">保存</string>
+    <string name="log_saved">已保存 ✓</string>
+    <string name="log_done">完成</string>
+    <string name="log_permission_denied">需要相机权限才能拍照，可改用相册或手动输入</string>
+    <string name="log_go_settings">去设置</string>
+    <string name="log_use_gallery">改用相册</string>
+    <string name="log_low_confidence">识别置信度较低，请核对数值</string>
+    <string name="log_retake">重拍</string>
+    <string name="log_shoot">拍照</string>
+    <string name="log_analysis_failed">识别失败，请重试或手动输入</string>
+
+    <!-- Placeholders for M3 -->
     <string name="placeholder_recipe">今日吃什么</string>
     <string name="placeholder_recipe_note">M3 里程碑接入 AI 菜谱推荐</string>
     <string name="placeholder_grocery">购物清单</string>
     <string name="placeholder_grocery_note">M3 里程碑接入菜谱→清单合并</string>
-    <string name="placeholder_m1_note">M1 骨架已构建：分层架构 / Room / AI Provider 抽象已就绪</string>
 </resources>

@@ -39,7 +39,7 @@ class CalculateNutritionPlanUseCaseTest {
     fun `male 30y 170cm 70kg lose sedentary gives budget 1560`() {
         // BMR = 10*70 + 6.25*170 - 5*30 + 5 = 700+1062.5-150+5 = 1617.5
         // TDEE = 1617.5 * 1.2 = 1941.0 ; budget = -20% = 1552.8 -> 1552 (no floor)
-        val plan = CalculateNutritionPlanUseCase.execute(
+        val plan = CalculateNutritionPlanUseCase().execute(
             profile(Gender.MALE, LocalDate.of(1995, 7, 1), 170.0, 70.0, Goal.LOSE, ActivityLevel.SEDENTARY),
             today
         )
@@ -51,7 +51,7 @@ class CalculateNutritionPlanUseCaseTest {
 
     @Test
     fun `male small body hits 1500 safety floor`() {
-        val plan = CalculateNutritionPlanUseCase.execute(
+        val plan = CalculateNutritionPlanUseCase().execute(
             profile(Gender.MALE, LocalDate.of(2000, 6, 1), 160.0, 50.0, Goal.LOSE, ActivityLevel.SEDENTARY),
             today
         )
@@ -62,7 +62,7 @@ class CalculateNutritionPlanUseCaseTest {
 
     @Test
     fun `female 28y 160cm 52kg lose sedentary hits 1200 floor`() {
-        val plan = CalculateNutritionPlanUseCase.execute(
+        val plan = CalculateNutritionPlanUseCase().execute(
             profile(Gender.FEMALE, LocalDate.of(1997, 8, 15), 160.0, 52.0, Goal.LOSE, ActivityLevel.SEDENTARY),
             today
         )
@@ -74,7 +74,7 @@ class CalculateNutritionPlanUseCaseTest {
     fun `female 35y 165cm 60kg gain active gives 2540`() {
         // BMR = 600 + 1031.25 - 175 - 161 = 1295.25
         // TDEE = 1295.25 * 1.725 = 2234.3 ; budget = +10% = 2457.7 -> 2457 (no floor)
-        val plan = CalculateNutritionPlanUseCase.execute(
+        val plan = CalculateNutritionPlanUseCase().execute(
             profile(Gender.FEMALE, LocalDate.of(1990, 3, 20), 165.0, 60.0, Goal.GAIN, ActivityLevel.ACTIVE),
             today
         )
@@ -86,7 +86,7 @@ class CalculateNutritionPlanUseCaseTest {
 
     @Test
     fun `macro targets use energy split and kcal-per-gram`() {
-        val plan = CalculateNutritionPlanUseCase.execute(
+        val plan = CalculateNutritionPlanUseCase().execute(
             profile(Gender.MALE, LocalDate.of(1995, 7, 1), 170.0, 70.0, Goal.LOSE, ActivityLevel.SEDENTARY),
             today
         )
@@ -100,7 +100,7 @@ class CalculateNutritionPlanUseCaseTest {
     fun `age of 100 is accepted and of 130 rejected by guard in caller`() {
         // The formula itself is total; boundary validation lives in callers,
         // but we verify an unrealistic age does not crash.
-        val plan = CalculateNutritionPlanUseCase.execute(
+        val plan = CalculateNutritionPlanUseCase().execute(
             profile(Gender.MALE, LocalDate.of(1926, 1, 1), 170.0, 70.0, Goal.MAINTAIN, ActivityLevel.SEDENTARY),
             today
         )

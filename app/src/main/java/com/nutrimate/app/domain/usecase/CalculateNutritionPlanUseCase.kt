@@ -6,6 +6,7 @@ import com.nutrimate.app.domain.model.Goal
 import com.nutrimate.app.domain.model.NutritionPlan
 import com.nutrimate.app.domain.model.UserProfile
 import java.time.LocalDate
+import javax.inject.Inject
 
 /**
  * Computes BMR / TDEE / calorie budget / macro targets from a profile.
@@ -16,15 +17,17 @@ import java.time.LocalDate
  *  - Female, 28y, 160cm, 52kg, LOSE, SEDENTARY -> floor at 1200
  *  - Female, 35y, 165cm, 60kg, GAIN, ACTIVE -> budget 2540
  */
-object CalculateNutritionPlanUseCase {
+class CalculateNutritionPlanUseCase @Inject constructor() {
 
-    /** Safety floor below which calorie budgets are clamped. */
-    const val MALE_FLOOR_KCAL = 1500.0
-    const val FEMALE_FLOOR_KCAL = 1200.0
+    companion object {
+        /** Safety floor below which calorie budgets are clamped. */
+        const val MALE_FLOOR_KCAL = 1500.0
+        const val FEMALE_FLOOR_KCAL = 1200.0
 
-    const val PROTEIN_KCAL_PER_G = 4.0
-    const val CARB_KCAL_PER_G = 4.0
-    const val FAT_KCAL_PER_G = 9.0
+        const val PROTEIN_KCAL_PER_G = 4.0
+        const val CARB_KCAL_PER_G = 4.0
+        const val FAT_KCAL_PER_G = 9.0
+    }
 
     /**
      * @param todayEpochDay reference date for age computation (injectable for tests)

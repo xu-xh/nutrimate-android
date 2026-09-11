@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Required for in-app photo capture (F3). Gallery uses system Photo Picker. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <!-- Privacy: NutriMate is local-first. Data must never be auto-backed-up to the cloud. -->
     <application
         android:name=".NutrimateApplication"

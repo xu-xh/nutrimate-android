@@ -51,7 +51,9 @@ di (Hilt)
 ./gradlew :app:testDebugUnitTest --no-daemon --console=plain
 ```
 
-CI（GitHub Actions，`.github/workflows/ci.yml`）：push/PR 到 main 时自动 `assembleDebug + testDebugUnitTest`，上传单测报告与 debug APK 工件。
+CI（GitHub Actions，`.github/workflows/ci.yml`）：
+- **push/PR 自动**：`assembleDebug + testDebugUnitTest`（质量门禁），上传单测报告与 debug APK 工件；
+- **手动触发（workflow_dispatch）**：`instrumented` job —— API 26 模拟器运行时冒烟测试（app 真机安装 + 首页渲染断言）。注意：GitHub hosted runner 无 KVM，模拟器以纯软件（TCG）模式运行且 boot 极慢，仅建议在带 KVM 的自托管 runner（可修改 `runs-on`）或采用本地真机/模拟器时使用本 job；当前 run 已就绪，若在支持硬件加速的环境可直接运行连测。
 
 质量门禁 = `assembleDebug` + `testDebugUnitTest`（23 个单测：金标准算法 / 食材合并去重 / 餐次推断 / 菜谱限次与预算过滤 / 菜谱 JSON 序列化）。
 

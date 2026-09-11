@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:  # manual: instrumented (emulator) smoke tests
 
 permissions:
   contents: read
@@ -53,8 +54,9 @@ jobs:
           if-no-files-found: ignore
 
   instrumented:
-    name: runtime smoke (emulator API 26)
+    name: runtime smoke (emulator API 26, manual only)
     needs: build-and-test
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -87,11 +89,11 @@ jobs:
             -accel off -gpu swiftshader_indirect -memory 1536 > /tmp/emu.log 2>&1 &
           adb wait-for-device
           BOOTED=0
-          for i in $(seq 1 120); do
-            v=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+          for i in $(seq 1 80); do
+            v=$(timeout 30 adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
             echo "boot poll $i: [$v]"
             if [ "$v" = "1" ]; then echo "EMULATOR_BOOTED"; BOOTED=1; break; fi
-            sleep 10
+            sleep 15
           done
           if [ "$BOOTED" != "1" ]; then echo "EMULATOR BOOT TIMEOUT"; tail -40 /tmp/emu.log; exit 1; fi
           adb shell input keyevent 82 || true

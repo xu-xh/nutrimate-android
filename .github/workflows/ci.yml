@@ -53,10 +53,10 @@ jobs:
           if-no-files-found: ignore
 
   instrumented:
-    name: runtime smoke (emulator API 30)
+    name: runtime smoke (emulator API 26)
     needs: build-and-test
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -74,21 +74,26 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Create AVD and boot emulator (software emulation)
+      - name: Install system image and create AVD
         run: |
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          echo "y" | sdkmanager "system-images;android-27;default;x86" "emulator" > /dev/null
-          echo "no" | avdmanager create avd -n ci -k "system-images;android-27;default;x86" --force
+          echo "y" | sdkmanager "system-images;android-26;default;x86" "emulator" "platform-tools" > /dev/null
+          echo "no" | avdmanager create avd -n ci -k "system-images;android-26;default;x86" --force
+
+      - name: Boot emulator (software emulation, no KVM on hosted runners)
+        run: |
           nohup "$ANDROID_HOME/emulator/emulator" -avd ci \
             -no-window -no-audio -no-boot-anim -no-snapshot \
-            -accel off -gpu swiftshader_indirect > /tmp/emu.log 2>&1 &
+            -accel off -gpu swiftshader_indirect -memory 1536 > /tmp/emu.log 2>&1 &
           adb wait-for-device
-          for i in $(seq 1 90); do
+          BOOTED=0
+          for i in $(seq 1 120); do
             v=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
             echo "boot poll $i: [$v]"
-            if [ "$v" = "1" ]; then echo "EMULATOR_BOOTED"; break; fi
+            if [ "$v" = "1" ]; then echo "EMULATOR_BOOTED"; BOOTED=1; break; fi
             sleep 10
           done
+          if [ "$BOOTED" != "1" ]; then echo "EMULATOR BOOT TIMEOUT"; tail -40 /tmp/emu.log; exit 1; fi
           adb shell input keyevent 82 || true
 
       - name: Instrumented smoke tests (real Android runtime)

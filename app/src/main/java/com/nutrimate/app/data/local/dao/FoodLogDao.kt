@@ -16,6 +16,21 @@ interface FoodLogDao {
     @Query("SELECT * FROM food_logs WHERE dateEpochDay = :dateEpochDay")
     suspend fun getByDate(dateEpochDay: Long): List<FoodLogEntity>
 
+    /** Daily calorie/protein/carb/fat totals (non-deleted) over a date range. */
+    @Query(
+        """
+        SELECT dateEpochDay,
+               SUM(calories) AS calories,
+               SUM(protein) AS protein,
+               SUM(carbs) AS carbs,
+               SUM(fat) AS fat
+        FROM food_logs
+        WHERE dateEpochDay BETWEEN :fromDay AND :toDay AND deleted = 0
+        GROUP BY dateEpochDay
+        """
+    )
+    suspend fun getDailyTotals(fromDay: Long, toDay: Long): List<DailyTotalsRow>
+
     @Insert
     suspend fun insert(entry: FoodLogEntity): Long
 

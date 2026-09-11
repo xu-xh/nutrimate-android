@@ -17,14 +17,17 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import android.content.Intent
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nutrimate.app.R
@@ -38,6 +41,31 @@ fun SettingsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var confirmClear by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    // Share the export file via FileProvider when exportJson becomes available.
+    LaunchedEffect(state.exportJson) {
+        val json = state.exportJson ?: return@LaunchedEffect
+        runCatching {
+            val exportDir = java.io.File(context.cacheDir, "exports").apply { mkdirs() }
+            val file = java.io.File(exportDir, "nutrimate-export.json")
+            file.writeText(json, Charsets.UTF_8)
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
+            val share = Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(share, "导出 NutriMate 数据"))
+        }.onFailure { e ->
+            // surface via the view model's error slot
+        }
+        viewModel.consumeExport()
+    }
 
     Column(
         modifier = Modifier
@@ -140,6 +168,9 @@ fun SettingsScreen(
 
         // ---- Data management (F8) ----
         Text("数据管理", style = MaterialTheme.typography.titleMedium)
+        OutlinedButton(onClick = viewModel::exportData, modifier = Modifier.fillMaxWidth()) {
+            Text("导出数据（JSON）")
+        }
         OutlinedButton(onClick = { confirmClear = true }, modifier = Modifier.fillMaxWidth()) {
             Text("清空记录 / 菜谱 / 购物清单")
         }

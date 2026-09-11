@@ -8,6 +8,7 @@ import com.nutrimate.app.domain.model.UserProfile
 import com.nutrimate.app.domain.repository.AiConfigRepository
 import com.nutrimate.app.domain.repository.ProfileRepository
 import com.nutrimate.app.domain.time.DayClock
+import com.nutrimate.app.domain.usecase.ExportDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,14 +32,16 @@ data class SettingsUiState(
     val hasApiKey: Boolean = false,
     val saved: Boolean = false,
     val error: String? = null,
-    val message: String? = null
+    val message: String? = null,
+    val exportJson: String? = null
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val aiConfigRepository: AiConfigRepository,
-    private val clock: DayClock
+    private val clock: DayClock,
+    private val exportDataUseCase: ExportDataUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsUiState())
@@ -129,6 +132,17 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
+    /** Produce the full export JSON; the screen writes it to a shareable file. */
+    fun exportData() {
+        viewModelScope.launch {
+            runCatching { exportDataUseCase.exportJson() }
+                .onSuccess { json -> _state.update { it.copy(exportJson = json, error = null) } }
+                .onFailure { e -> _state.update { it.copy(error = "导出失败：${e.message}") } }
+        }
+    }
+
+    fun consumeExport() = _state.update { it.copy(exportJson = null) }
 
     /** Clear business data but keep profile (PRD F8). */
     fun clearBusinessData() {

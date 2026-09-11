@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -48,6 +49,7 @@ import com.nutrimate.app.domain.model.DailySummary
 import com.nutrimate.app.domain.model.FoodLogEntry
 import com.nutrimate.app.domain.model.MealType
 import com.nutrimate.app.domain.model.NutritionPlan
+import com.nutrimate.app.domain.usecase.TrendDay
 import java.time.LocalDate
 
 /**
@@ -101,6 +103,12 @@ fun HomeScreen(
             CalorieRing(summary = state.summary, plan = state.plan)
 
             MacroBars(summary = state.summary, plan = state.plan)
+
+            // 近 7 日热量趋势（迭代新增）
+            WeeklyTrendCard(
+                trends = state.trends,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             // 今日吃什么 entry (M3)
             Button(onClick = onEatWhat, modifier = Modifier.fillMaxWidth()) {
@@ -343,6 +351,48 @@ private fun EditEntryDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.home_cancel)) }
         }
     )
+}
+
+@Composable
+private fun WeeklyTrendCard(trends: List<TrendDay>, modifier: Modifier = Modifier) {
+    if (trends.isEmpty()) return
+    val maxCal = maxOf(trends.maxOfOrNull { it.calories } ?: 0.0, 1.0)
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("近 7 日热量", style = MaterialTheme.typography.titleSmall)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            trends.forEach { t ->
+                val barColor = if (t.budget != null && t.calories > t.budget) Color(0xFFDC2626)
+                else MaterialTheme.colorScheme.primary
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    // bar
+                    Canvas(modifier = Modifier
+                        .width(22.dp)
+                        .height(64.dp)) {
+                        val barH = (t.calories / maxCal * size.height).toFloat().coerceAtLeast(1f)
+                        drawRect(
+                            color = barColor,
+                            topLeft = Offset(0f, size.height - barH),
+                            size = Size(size.width, barH)
+                        )
+                    }
+                    Text(
+                        t.calories.toInt().toString(),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                    Text(
+                        LocalDate.ofEpochDay(t.dateEpochDay).dayOfMonth.toString(),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
+        }
+    }
 }
 
 private fun mealName(type: MealType): String = when (type) {

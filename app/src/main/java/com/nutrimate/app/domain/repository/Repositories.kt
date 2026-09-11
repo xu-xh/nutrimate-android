@@ -38,6 +38,9 @@ interface FoodLogRepository {
     /** Non-deleted entries only. */
     suspend fun getByDate(dateEpochDay: Long): List<FoodLogEntry>
 
+    /** Per-day totals over [fromDay]..[toDay] (inclusive), for trend charts. */
+    suspend fun getDailyTotals(fromDay: Long, toDay: Long): List<DailyTotalAggregate>
+
     suspend fun insert(entry: FoodLogEntry): Long
 
     suspend fun update(entry: FoodLogEntry)
@@ -45,6 +48,15 @@ interface FoodLogRepository {
     /** Soft-delete: mark deleted=true so it stops counting. */
     suspend fun softDelete(id: Long)
 }
+
+/** Per-day nutrition totals (trend chart data point). */
+data class DailyTotalAggregate(
+    val dateEpochDay: Long,
+    val calories: Double,
+    val protein: Double,
+    val carbs: Double,
+    val fat: Double
+)
 
 /**
  * Repository for generated recipe history (used for caching + daily quota).

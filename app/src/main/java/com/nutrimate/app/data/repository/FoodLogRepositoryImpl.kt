@@ -3,6 +3,7 @@ package com.nutrimate.app.data.repository
 import com.nutrimate.app.data.local.dao.FoodLogDao
 import com.nutrimate.app.data.local.entity.FoodLogEntity
 import com.nutrimate.app.domain.model.FoodLogEntry
+import com.nutrimate.app.domain.repository.DailyTotalAggregate
 import com.nutrimate.app.domain.repository.FoodLogRepository
 import com.nutrimate.app.domain.time.DayClock
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,17 @@ class FoodLogRepositoryImpl @Inject constructor(
 
     override suspend fun getByDate(dateEpochDay: Long): List<FoodLogEntry> =
         dao.getByDate(dateEpochDay).map { it.toDomain() }
+
+    override suspend fun getDailyTotals(fromDay: Long, toDay: Long): List<DailyTotalAggregate> =
+        dao.getDailyTotals(fromDay, toDay).map {
+            DailyTotalAggregate(
+                dateEpochDay = it.dateEpochDay,
+                calories = it.calories ?: 0.0,
+                protein = it.protein ?: 0.0,
+                carbs = it.carbs ?: 0.0,
+                fat = it.fat ?: 0.0
+            )
+        }
 
     override suspend fun insert(entry: FoodLogEntry): Long =
         dao.insert(FoodLogEntity.fromDomain(entry))

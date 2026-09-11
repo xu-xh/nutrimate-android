@@ -10,6 +10,8 @@ import com.nutrimate.app.domain.repository.ProfileRepository
 import com.nutrimate.app.domain.time.DayClock
 import com.nutrimate.app.domain.usecase.CalculateNutritionPlanUseCase
 import com.nutrimate.app.domain.usecase.GetTodaySummaryUseCase
+import com.nutrimate.app.domain.usecase.TrendDay
+import com.nutrimate.app.domain.usecase.WeeklyTrendsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +26,8 @@ data class HomeUiState(
     val summary: DailySummary? = null,
     val plan: NutritionPlan? = null,
     val presentDay: Boolean = false,
-    val loading: Boolean = true
+    val loading: Boolean = true,
+    val trends: List<TrendDay> = emptyList()
 )
 
 @HiltViewModel
@@ -33,7 +36,8 @@ class HomeViewModel @Inject constructor(
     private val foodLogRepository: FoodLogRepository,
     private val profileRepository: ProfileRepository,
     private val clock: DayClock,
-    private val calculatePlan: CalculateNutritionPlanUseCase
+    private val calculatePlan: CalculateNutritionPlanUseCase,
+    private val weeklyTrends: WeeklyTrendsUseCase
 ) : ViewModel() {
 
     private val _date = MutableStateFlow(clock.todayEpochDay())
@@ -63,6 +67,9 @@ class HomeViewModel @Inject constructor(
                     loading = false
                 )
             }.collect { _state.value = it }
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(trends = weeklyTrends.last7Days()) }
         }
     }
 

@@ -74,16 +74,25 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Instrumented smoke tests on emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          arch: x86_64
-          profile: pixel_4
-          disable-animations: true
-          # Single line on purpose: android-emulator-runner executes `script`
-          # as a joined string, so backslash line continuations break.
-          script: ./gradlew :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace
+      - name: Create AVD and boot emulator (software emulation)
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          echo "y" | sdkmanager "system-images;android-27;default;x86" "emulator" > /dev/null
+          echo "no" | avdmanager create avd -n ci -k "system-images;android-27;default;x86" --force
+          nohup "$ANDROID_HOME/emulator/emulator" -avd ci \
+            -no-window -no-audio -no-boot-anim -no-snapshot \
+            -accel off -gpu swiftshader_indirect > /tmp/emu.log 2>&1 &
+          adb wait-for-device
+          for i in $(seq 1 90); do
+            v=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            echo "boot poll $i: [$v]"
+            if [ "$v" = "1" ]; then echo "EMULATOR_BOOTED"; break; fi
+            sleep 10
+          done
+          adb shell input keyevent 82 || true
+
+      - name: Instrumented smoke tests (real Android runtime)
+        run: ./gradlew :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace
 
       - name: Upload instrumented test report
         if: always()
@@ -91,4 +100,12 @@ jobs:
         with:
           name: instrumented-test-report
           path: app/build/reports/androidTests/connected/
+          if-no-files-found: ignore
+
+      - name: Upload emulator log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-log
+          path: /tmp/emu.log
           if-no-files-found: ignore

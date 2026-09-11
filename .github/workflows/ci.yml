@@ -81,9 +81,9 @@ jobs:
           arch: x86_64
           profile: pixel_4
           disable-animations: true
-          script: |
-            ./gradlew :app:connectedDebugAndroidTest \
-              --no-daemon --console=plain --stacktrace
+          # Single line on purpose: android-emulator-runner executes `script`
+          # as a joined string, so backslash line continuations break.
+          script: ./gradlew :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace
 
       - name: Upload instrumented test report
         if: always()

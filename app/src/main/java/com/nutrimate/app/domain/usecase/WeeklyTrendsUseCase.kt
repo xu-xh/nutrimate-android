@@ -3,6 +3,7 @@ package com.nutrimate.app.domain.usecase
 import com.nutrimate.app.domain.repository.DailyTotalAggregate
 import com.nutrimate.app.domain.repository.FoodLogRepository
 import com.nutrimate.app.domain.repository.ProfileRepository
+import com.nutrimate.app.domain.repository.WeightRepository
 import com.nutrimate.app.domain.time.DayClock
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -11,7 +12,8 @@ import javax.inject.Inject
 data class TrendDay(
     val dateEpochDay: Long,
     val calories: Double,
-    val budget: Int?     // null when no profile yet
+    val budget: Int?,        // null when no profile yet
+    val weightKg: Double?    // null when not measured that day
 )
 
 /**
@@ -21,6 +23,7 @@ data class TrendDay(
 class WeeklyTrendsUseCase @Inject constructor(
     private val foodLogRepository: FoodLogRepository,
     private val profileRepository: ProfileRepository,
+    private val weightRepository: WeightRepository,
     private val clock: DayClock,
     private val calculatePlan: CalculateNutritionPlanUseCase
 ) {
@@ -30,6 +33,7 @@ class WeeklyTrendsUseCase @Inject constructor(
         val from = today - 6
         val totals = foodLogRepository.getDailyTotals(from, today)
             .associateBy { it.dateEpochDay }
+        val weights = weightRepository.getRange(from, today).associateBy { it.dateEpochDay }
         val profile = profileRepository.observeProfile().first()
 
         return (from..today).map { day ->
@@ -39,7 +43,8 @@ class WeeklyTrendsUseCase @Inject constructor(
                 calories = aggregate?.calories ?: 0.0,
                 budget = profile?.let {
                     calculatePlan.execute(it, day).caloriesBudget
-                }
+                },
+                weightKg = weights[day]?.weightKg
             )
         }
     }

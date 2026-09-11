@@ -357,8 +357,14 @@ private fun EditEntryDialog(
 private fun WeeklyTrendCard(trends: List<TrendDay>, modifier: Modifier = Modifier) {
     if (trends.isEmpty()) return
     val maxCal = maxOf(trends.maxOfOrNull { it.calories } ?: 0.0, 1.0)
+    val weights = trends.mapNotNull { t ->
+        t.weightKg?.let { w -> t.dateEpochDay to w }
+    }
+    val minW = weights.minOfOrNull { it.second } ?: 0.0
+    val maxW = weights.maxOfOrNull { it.second } ?: 0.0
+    val weightSpan = (maxW - minW).coerceAtLeast(0.1)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("近 7 日热量", style = MaterialTheme.typography.titleSmall)
+        Text("近 7 日热量 / 体重", style = MaterialTheme.typography.titleSmall)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -370,16 +376,25 @@ private fun WeeklyTrendCard(trends: List<TrendDay>, modifier: Modifier = Modifie
                 val barColor = if (t.budget != null && t.calories > t.budget) Color(0xFFDC2626)
                 else MaterialTheme.colorScheme.primary
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    // bar
+                    // bar with optional weight dot
                     Canvas(modifier = Modifier
-                        .width(22.dp)
-                        .height(64.dp)) {
-                        val barH = (t.calories / maxCal * size.height).toFloat().coerceAtLeast(1f)
+                        .width(26.dp)
+                        .height(72.dp)) {
+                        val barH = (t.calories / maxCal * size.height * 0.85f).toFloat().coerceAtLeast(1f)
                         drawRect(
                             color = barColor,
                             topLeft = Offset(0f, size.height - barH),
                             size = Size(size.width, barH)
                         )
+                        val w = t.weightKg
+                        if (w != null) {
+                            val y = (1f - ((w - minW) / weightSpan).toFloat()).coerceIn(0f, 1f) * size.height
+                            drawCircle(
+                                color = Color(0xFF2563EB),
+                                radius = 4.dp.toPx(),
+                                center = Offset(size.width / 2f, y)
+                            )
+                        }
                     }
                     Text(
                         t.calories.toInt().toString(),
@@ -391,6 +406,12 @@ private fun WeeklyTrendCard(trends: List<TrendDay>, modifier: Modifier = Modifie
                     )
                 }
             }
+        }
+        if (weights.isNotEmpty()) {
+            Text(
+                "蓝点 = 当日体重（${minW}–${maxW} kg）",
+                style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 }

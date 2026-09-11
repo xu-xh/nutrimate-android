@@ -3,6 +3,7 @@ package com.nutrimate.app.domain.repository
 import com.nutrimate.app.domain.model.FoodLogEntry
 import com.nutrimate.app.domain.model.RecipeRecommendation
 import com.nutrimate.app.domain.model.UserProfile
+import com.nutrimate.app.domain.model.WeightLogEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -44,6 +45,17 @@ class GroceryRepositoryStub(
     override suspend fun setChecked(id: Long, checked: Boolean) = Unit
     override suspend fun delete(id: Long) = Unit
     override suspend fun clearAll() = Unit
+}
+
+/** Weight repository stub for trend/weight tests. */
+class WeightRepositoryStub(
+    private val records: List<WeightLogEntry> = emptyList()
+) : WeightRepository {
+    override fun observeLatestFirst(): Flow<List<WeightLogEntry>> = flowOf(records)
+    override suspend fun getRange(fromDay: Long, toDay: Long): List<WeightLogEntry> =
+        records.filter { it.dateEpochDay in fromDay..toDay }
+    override suspend fun recordWeight(dateEpochDay: Long, weightKg: Double) = Unit
+    override suspend fun delete(id: Long) = Unit
 }
 
 /** Recipe stub for export tests (not used by export JSON v1 beyond totals). */

@@ -11,6 +11,7 @@ import com.nutrimate.app.data.local.dao.FoodLogDao
 import com.nutrimate.app.data.local.dao.GroceryDao
 import com.nutrimate.app.data.local.dao.ProfileDao
 import com.nutrimate.app.data.local.dao.RecipeDao
+import com.nutrimate.app.data.local.dao.WeightDao
 import com.nutrimate.app.data.local.preferences.PreferencesDataSource
 import com.nutrimate.app.domain.repository.AiConfigRepository
 import com.nutrimate.app.domain.repository.FoodLogRepository
@@ -18,6 +19,7 @@ import com.nutrimate.app.domain.repository.GroceryRepository
 import com.nutrimate.app.domain.repository.NutritionAiService
 import com.nutrimate.app.domain.repository.ProfileRepository
 import com.nutrimate.app.domain.repository.RecipeRepository
+import com.nutrimate.app.domain.repository.WeightRepository
 import com.nutrimate.app.domain.time.DayClock
 import com.nutrimate.app.domain.time.SystemDayClock
 import com.nutrimate.app.domain.usecase.RecipeGenerationCounter
@@ -38,7 +40,7 @@ object DataModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): NutrimateDatabase =
         Room.databaseBuilder(context, NutrimateDatabase::class.java, "nutrimate.db")
-            .fallbackToDestructiveMigration(dropAllTables = true)
+            .addMigrations(NutrimateDatabase.MIGRATION_1_2)
             .build()
 
     @Provides
@@ -52,6 +54,9 @@ object DataModule {
 
     @Provides
     fun provideGroceryDao(db: NutrimateDatabase): GroceryDao = db.groceryDao()
+
+    @Provides
+    fun provideWeightDao(db: NutrimateDatabase): WeightDao = db.weightDao()
 
     @Provides
     @Singleton
@@ -94,6 +99,10 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun bindGenerationCounter(impl: com.nutrimate.app.data.repository.RecipeGenerationCounterImpl): RecipeGenerationCounter = impl
+
+    @Provides
+    @Singleton
+    fun bindWeightRepository(impl: com.nutrimate.app.data.repository.WeightRepositoryImpl): WeightRepository = impl
 
     @Provides
     fun providePreferencesDataSource(dataStore: DataStore<Preferences>): PreferencesDataSource =

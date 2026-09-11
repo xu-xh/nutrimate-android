@@ -126,6 +126,37 @@ fun SettingsScreen(
 
         HorizontalDivider()
 
+        // ---- Weight tracking (P1) ----
+        Text("体重记录", style = MaterialTheme.typography.titleMedium)
+        OutlinedTextField(
+            value = state.weightInput,
+            onValueChange = viewModel::setWeightInput,
+            label = { Text("今日体重 (kg)") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Button(onClick = viewModel::recordWeight, modifier = Modifier.fillMaxWidth()) {
+            Text("记录今日体重")
+        }
+        if (state.recentWeights.isNotEmpty()) {
+            Text("最近记录", style = MaterialTheme.typography.titleSmall)
+            state.recentWeights.take(10).forEach { w ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "${java.time.LocalDate.ofEpochDay(w.dateEpochDay)} · ${w.weightKg} kg",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    TextButton(onClick = { viewModel.deleteWeight(w.id) }) { Text("删除") }
+                }
+            }
+        }
+
+        HorizontalDivider()
+
         // ---- AI Provider (BYOK) ----
         Text("AI 服务（BYOK）", style = MaterialTheme.typography.titleMedium)
         Text(

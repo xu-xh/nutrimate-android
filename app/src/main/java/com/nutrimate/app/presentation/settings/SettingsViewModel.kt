@@ -5,13 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.nutrimate.app.domain.model.ActivityLevel
 import com.nutrimate.app.domain.model.Goal
 import com.nutrimate.app.domain.model.UserProfile
+import com.nutrimate.app.domain.model.WeightLogEntry
 import com.nutrimate.app.domain.repository.AiConfigRepository
 import com.nutrimate.app.domain.repository.ProfileRepository
 import com.nutrimate.app.domain.time.DayClock
 import com.nutrimate.app.domain.usecase.ExportDataUseCase
+import com.nutrimate.app.domain.usecase.LogWeightUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,7 +36,10 @@ data class SettingsUiState(
     val saved: Boolean = false,
     val error: String? = null,
     val message: String? = null,
-    val exportJson: String? = null
+    val exportJson: String? = null,
+    // weight tracking
+    val weightInput: String = "",
+    val recentWeights: List<WeightLogEntry> = emptyList()
 )
 
 @HiltViewModel
@@ -41,7 +47,9 @@ class SettingsViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val aiConfigRepository: AiConfigRepository,
     private val clock: DayClock,
-    private val exportDataUseCase: ExportDataUseCase
+    private val exportDataUseCase: ExportDataUseCase,
+    private val logWeightUseCase: LogWeightUseCase,
+    private val weightRepository: com.nutrimate.app.domain.repository.WeightRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsUiState())
@@ -143,6 +151,36 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun consumeExport() = _state.update { it.copy(exportJson = null) }
+
+    fun setWeightInput(v: String) = _state.update { it.copy(weightInput = v) }
+
+    /** Record today's weight; keeps the latest list for the UI. */
+    fun recordWeight() {
+        val kg = _state.value.weightInput.toDoubleOrNull()
+        if (kg == null || kg < 30.0 || kg > 300.0) {
+            _state.update { it.copy(error = "体重需在 30-300 kg") }
+            return
+        }
+        viewModelScope.launch {
+            if (logWeightUseCase.recordToday(kg)) {
+                refreshWeights()
+                _state.update { it.copy(weightInput = "", message = "今日体重已记录：${kg} kg") }
+            }
+        }
+    }
+
+    fun deleteWeight(id: Long) {
+        viewModelScope.launch {
+            weightRepository.delete(id)
+            refreshWeights()
+        }
+    }
+
+    private suspend fun refreshWeights() {
+        _state.update {
+            it.copy(recentWeights = weightRepository.observeLatestFirst().first())
+        }
+    }
 
     /** Clear business data but keep profile (PRD F8). */
     fun clearBusinessData() {

@@ -38,7 +38,7 @@ object DataModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): NutrimateDatabase =
         Room.databaseBuilder(context, NutrimateDatabase::class.java, "nutrimate.db")
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 
     @Provides

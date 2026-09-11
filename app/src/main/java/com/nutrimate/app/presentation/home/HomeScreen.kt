@@ -58,6 +58,7 @@ import java.time.LocalDate
 fun HomeScreen(
     onLogMeal: () -> Unit,
     onEatWhat: () -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -91,7 +92,10 @@ fun HomeScreen(
                         }
                     }
                 }
-                IconButton(onClick = viewModel::nextDay) { Text("›", style = MaterialTheme.typography.headlineMedium) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = viewModel::nextDay) { Text("›", style = MaterialTheme.typography.headlineMedium) }
+                    IconButton(onClick = onOpenSettings) { Text("⚙") }
+                }
             }
 
             CalorieRing(summary = state.summary, plan = state.plan)

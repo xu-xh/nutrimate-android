@@ -21,6 +21,7 @@ import com.nutrimate.app.presentation.home.HomeScreen
 import com.nutrimate.app.presentation.logmeal.LogMealScreen
 import com.nutrimate.app.presentation.onboarding.OnboardingScreen
 import com.nutrimate.app.presentation.recipe.RecipeScreen
+import com.nutrimate.app.presentation.settings.SettingsScreen
 
 /** Navigation routes. */
 object Destinations {
@@ -29,6 +30,7 @@ object Destinations {
     const val LOG_MEAL = "log_meal"
     const val RECIPE = "recipe"
     const val GROCERY = "grocery"
+    const val SETTINGS = "settings"
 }
 
 /**
@@ -111,7 +113,8 @@ fun NutrimateNavHost(
                         navController.navigate(Destinations.RECIPE) {
                             launchSingleTop = true
                         }
-                    }
+                    },
+                    onOpenSettings = { navController.navigate(Destinations.SETTINGS) }
                 )
             }
             composable(Destinations.LOG_MEAL) {
@@ -119,6 +122,9 @@ fun NutrimateNavHost(
             }
             composable(Destinations.RECIPE) { RecipeScreen() }
             composable(Destinations.GROCERY) { GroceryScreen() }
+            composable(Destinations.SETTINGS) {
+                SettingsScreen(onBack = { navController.popBackStack() })
+            }
         }
     }
 }

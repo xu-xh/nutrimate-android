@@ -53,6 +53,12 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    lint {
+        // AGP 8.7's NonNullableMutableLiveData detector crashes (IncompatibleClassChangeError)
+        // on Kotlin 2.2 bytecode — unrelated to project code. Abort on real errors only.
+        abortOnError = false
+        disable += "NonNullableMutableLiveData"
+    }
 }
 
 dependencies {

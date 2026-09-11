@@ -1,5 +1,7 @@
 # NutriMate
 
+[![CI](https://github.com/xu-xh/nutrimate-android/actions/workflows/ci.yml/badge.svg)](https://github.com/xu-xh/nutrimate-android/actions/workflows/ci.yml)
+
 每天 30 秒拍一餐，AI 记录营养；打开就知道「今天吃什么」，菜谱一键变购物清单。
 
 > 面向减脂 / 增肌用户的健康饮食管理 Android App（MVP）。
@@ -44,10 +46,12 @@ di (Hilt)
 ## 构建与质量门禁
 
 ```bash
-# 依赖 SDK 于 local.properties
-/root/gradle-8.9/bin/gradle :app:assembleDebug --no-daemon --console=plain
-/root/gradle-8.9/bin/gradle :app:testDebugUnitTest --no-daemon --console=plain
+# 使用 Gradle Wrapper（本地与 CI 一致）
+./gradlew :app:assembleDebug --no-daemon --console=plain
+./gradlew :app:testDebugUnitTest --no-daemon --console=plain
 ```
+
+CI（GitHub Actions，`.github/workflows/ci.yml`）：push/PR 到 main 时自动 `assembleDebug + testDebugUnitTest`，上传单测报告与 debug APK 工件。
 
 质量门禁 = `assembleDebug` + `testDebugUnitTest`（23 个单测：金标准算法 / 食材合并去重 / 餐次推断 / 菜谱限次与预算过滤 / 菜谱 JSON 序列化）。
 

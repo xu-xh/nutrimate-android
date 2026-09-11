@@ -191,18 +191,21 @@ private fun CameraCaptureView(
     val lifecycleOwner = LocalLifecycleOwner.current
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var cameraReady by remember { mutableStateOf(false) }
-    var surfaceProvider by remember { mutableStateOf<androidx.camera.core.Preview.SurfaceProvider?>(null) }
+    var previewView by remember { mutableStateOf<PreviewView?>(null) }
     val executor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
 
     DisposableEffect(Unit) {
         onDispose { executor.shutdown() }
     }
 
-    LaunchedEffect(Unit) {
+    // Bind the camera only after the PreviewView exists (fixes the black-screen
+    // race where LaunchedEffect(Unit) ran before the surface provider existed).
+    LaunchedEffect(previewView) {
+        val view = previewView ?: return@LaunchedEffect
         runCatching {
             val provider = ProcessCameraProvider.getInstance(context).get()
             val preview = Preview.Builder().build().also {
-                surfaceProvider?.let { sp -> it.setSurfaceProvider(sp) }
+                it.setSurfaceProvider(view.surfaceProvider)
             }
             imageCapture = ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
@@ -222,9 +225,7 @@ private fun CameraCaptureView(
         AndroidView(
             factory = { ctx ->
                 PreviewView(ctx).also { v ->
-                    surfaceProvider = v.surfaceProvider
-                    // If the camera already bound, attach the provider now.
-                    cameraReady
+                    previewView = v
                 }
             },
             modifier = Modifier.fillMaxSize()
@@ -241,7 +242,6 @@ private fun CameraCaptureView(
         Button(
             onClick = {
                 if (capture != null) {
-                    val buffer = ByteArrayOutputStream()
                     capture.takePicture(
                         executor,
                         object : ImageCapture.OnImageCapturedCallback() {
@@ -266,15 +266,45 @@ private fun CameraCaptureView(
     }
 }
 
+/** Converts a YUV_420_888 ImageProxy into a JPEG byte array (NV21 path).
+ *  Fixes the previous implementation that copied the raw Y plane as ARGB
+ *  pixels, which produces color-corrupted frames. */
 private fun androidx.camera.core.ImageProxy.toJpegBytes(): ByteArray {
-    val buffer = java.nio.ByteBuffer.allocate(width * height * 4)
-    planes[0].buffer.rewind()
-    planes[0].buffer.get(buffer.array(), 0, buffer.capacity().coerceAtMost(planes[0].buffer.remaining()))
-    val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
-    bitmap.copyPixelsFromBuffer(buffer)
+    val yPlane = planes[0]
+    val uPlane = planes[1]
+    val vPlane = planes[2]
+
+    val nv21 = ByteArray(width * height * 3 / 2)
+    var pos = 0
+
+    // Copy Y plane row by row (rowStride may exceed width).
+    val yBuf = yPlane.buffer
+    yBuf.rewind()
+    for (row in 0 until height) {
+        yBuf.position(row * yPlane.rowStride)
+        yBuf.get(nv21, pos, width)
+        pos += width
+    }
+
+    // Interleave U/V into NV21 order (V first, then U), half resolution.
+    val uBuf = uPlane.buffer
+    val vBuf = vPlane.buffer
+    uBuf.rewind()
+    vBuf.rewind()
+    for (row in 0 until height / 2) {
+        uBuf.position(row * uPlane.rowStride)
+        vBuf.position(row * vPlane.rowStride)
+        for (col in 0 until width / 2) {
+            nv21[pos++] = vBuf.get() // V
+            nv21[pos++] = uBuf.get() // U
+        }
+    }
+
+    val yuv = android.graphics.YuvImage(
+        nv21, android.graphics.ImageFormat.NV21, width, height, null
+    )
     val out = ByteArrayOutputStream()
-    bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, out)
-    bitmap.recycle()
+    yuv.compressToJpeg(android.graphics.Rect(0, 0, width, height), 85, out)
     return out.toByteArray()
 }
 

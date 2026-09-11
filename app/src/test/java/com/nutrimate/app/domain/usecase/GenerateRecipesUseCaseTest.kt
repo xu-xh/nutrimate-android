@@ -8,6 +8,7 @@ import com.nutrimate.app.domain.model.Ingredient
 import com.nutrimate.app.domain.model.MealType
 import com.nutrimate.app.domain.model.RecipeRecommendation
 import com.nutrimate.app.domain.model.UserProfile
+import com.nutrimate.app.domain.repository.DailyTotalAggregate
 import com.nutrimate.app.domain.repository.FoodLogRepository
 import com.nutrimate.app.domain.repository.NutritionAiService
 import com.nutrimate.app.domain.repository.ProfileRepository
@@ -83,6 +84,8 @@ class GenerateRecipesUseCaseTest {
     private fun foodLogRepo(entries: List<FoodLogEntry>) = object : FoodLogRepository {
         override fun observeByDate(dateEpochDay: Long): Flow<List<FoodLogEntry>> = flowOf(entries)
         override suspend fun getByDate(dateEpochDay: Long): List<FoodLogEntry> = entries
+        override suspend fun getDailyTotals(fromDay: Long, toDay: Long): List<DailyTotalAggregate> =
+            emptyList()
         override suspend fun insert(entry: FoodLogEntry): Long = 1L
         override suspend fun update(entry: FoodLogEntry) = Unit
         override suspend fun softDelete(id: Long) = Unit
